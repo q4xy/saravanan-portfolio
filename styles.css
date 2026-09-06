@@ -38,7 +38,7 @@
   
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:auto;}
-  body{background:var(--bg-void);color:var(--text-primary);font-family:var(--font-display);overflow-x:hidden;overflow-y:hidden;-webkit-font-smoothing:antialiased;}
+  body{background:radial-gradient(125% 125% at 50% 10%,#000 40%,#6633ee 100%);background-attachment:fixed;color:var(--text-primary);font-family:var(--font-display);overflow-x:hidden;overflow-y:hidden;-webkit-font-smoothing:antialiased;}
   .global-color-field{position:fixed;inset:0;z-index:0;pointer-events:none;background:
     radial-gradient(ellipse 72% 42% at 50% 42%,rgba(168,85,247,.11),transparent 72%),
     radial-gradient(ellipse 64% 40% at 52% 74%,rgba(236,72,153,.075),transparent 72%),
@@ -78,7 +78,7 @@
      violet edge), always on, sitting behind every canvas and every piece
      of real content (z-index -2, pointer-events:none) so it never covers
      text/cards/3D — it's just the page's backdrop. */
-  #bg-gradient-base{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(125% 125% at 50% 10%,#000 40%,#63e 100%);}
+  #bg-gradient-base{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(125% 125% at 50% 10%,#000 40%,#6633ee 100%);}
   @media(prefers-reduced-motion:reduce){.bg-scanlines,.bg-scan-sweep{animation:none;}}
 
   /* CYBER AMBIENT BACKGROUND */
@@ -400,7 +400,8 @@
 
   /* ===== ABOUT (TRANSPARENT TO SHOW MATRIX) ===== */
   #about.section-wrap {
-    position: relative; z-index: 2; padding-top: clamp(140px, 20vw, 220px); margin-top: -80px; background: transparent;
+    position: relative; z-index: 2; padding-top: clamp(140px, 20vw, 220px); margin-top: -80px;
+    background:transparent;
   }
   .about-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(32px,5vw,64px);align-items:start;}
   .about-bio{font-size:clamp(14px,1.6vw,16px);line-height:1.7;color:var(--text-secondary);margin-bottom:32px;}
@@ -1271,7 +1272,7 @@
      =================================================================== */
 
   /* --- Velocity-reactive grid canvas --- */
-  #fx-grid-canvas{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;}
+  #fx-grid-canvas{display:none;}
 
   /* --- FPS monitor easter egg --- */
   .fx-fps{position:fixed;top:18px;left:18px;z-index:10003;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;color:var(--accent-red);background:rgba(5,5,5,.82);border:1px solid var(--line-strong);border-radius:6px;padding:8px 10px;min-width:126px;box-shadow:0 0 18px rgba(0,0,0,.6),inset 0 0 12px color-mix(in srgb,var(--accent-red) 8%,transparent);opacity:0;transform:translateY(-8px) scale(.96);pointer-events:none;transition:opacity .3s var(--ease-out),transform .3s var(--ease-snap);}
