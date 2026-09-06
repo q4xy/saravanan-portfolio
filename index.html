@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q4XY — Developer</title>
+<meta name="description" content="Q4XY — Grade 11 developer building web projects, robotics, and cybersecurity experiments.">
+<style>
+  html,body{background:#fff;}
+  #portfolio-loader{position:fixed;inset:0;z-index:10001;display:grid;place-items:center;padding:24px;background:#eef0f3;color:#111;transform:translateY(0);transition:transform .58s cubic-bezier(.76,0,.24,1);will-change:transform;}
+  #portfolio-loader.is-exiting{transform:translateY(-100%);}
+  #portfolio-loader .loader-content{display:flex;flex-direction:column;align-items:center;gap:1rem;width:min(92vw,520px);padding:clamp(30px,6vw,58px) clamp(24px,7vw,70px);text-align:center;background:#eef0f3;border-radius:32px;box-shadow:18px 18px 38px #d0d3d8,-18px -18px 38px #fff;}
+  #portfolio-loader .loader-age{font:700 clamp(2.2rem,5vw,2.8rem)/1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.04em;color:#111;text-shadow:2px 2px 4px #d0d3d8,-2px -2px 4px #fff;}
+  #portfolio-loader .loader-title{font:700 clamp(1rem,2.5vw,1.35rem)/1.1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;}
+  #portfolio-loader .morphing-square{width:2rem;height:2rem;background:#111;box-shadow:4px 4px 8px #d0d3d8,-3px -3px 7px #fff;animation:morphing-square 2s ease-in-out infinite;}
+  #portfolio-loader .loader-message{min-height:1.45em;font:500 clamp(.9rem,2vw,1.05rem)/1.35 "JetBrains Mono","Courier New",monospace;color:#444;}
+  #portfolio-loader .loader-progress-row{display:flex;flex-direction:column;align-items:center;width:100%;gap:.75rem;margin-top:1.8rem;}
+  #portfolio-loader .loader-progress-track{width:100%;height:12px;padding:3px;overflow:hidden;background:#dfe2e6;border-radius:999px;box-shadow:inset 3px 3px 6px #cbd0d6,inset -3px -3px 6px #fff;}
+  #portfolio-loader .loader-progress-fill{display:block;width:1%;height:100%;background:#111;border-radius:inherit;transition:width .08s linear;box-shadow:1px 1px 2px #888;}
+  #portfolio-loader .loader-progress-value{font:700 clamp(1.7rem,4vw,2.3rem)/1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.04em;}
+  @keyframes morphing-square{0%,100%{border-radius:6%;transform:rotate(0deg)}50%{border-radius:50%;transform:rotate(180deg)}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<script>
+  (function(){
+    var mode = 'matrix';
+    try {
+      mode = localStorage.getItem('q4xy_bg_mode') || 'matrix';
+      if(mode === 'waves') mode = 'dots'; // legacy value from the old Waveform mode
+    } catch(e){}
+    document.body.setAttribute('data-bg-mode', mode);
+    // Tiny shared pub/sub so each background module (matrix / kinetic / dots)
+    // can know — and fully pause on — whether it is the active mode, instead
+    // of only being hidden behind opacity:0.
+    window.__q4xyBgMode = {
+      current: mode,
+      _subs: [],
+      subscribe: function(fn){ this._subs.push(fn); },
+      set: function(m){ this.current = m; this._subs.forEach(function(fn){ fn(m); }); }
+    };
+  })();
+</script>
+
+  <!-- MorphingSquare loader — first visible UI -->
+  <section id="portfolio-loader" aria-live="polite" aria-label="Loading portfolio">
+    <div class="loader-content">
+      <div class="loader-age">16</div>
+      <div class="loader-title">Year Old Developer</div>
+      <div class="morphing-square" aria-hidden="true"></div>
+      <div class="loader-message" id="loader-message">Initializing portfolio...</div>
+      <div class="loader-progress-row" aria-label="Portfolio loading progress">
+        <div class="loader-progress-track"><span class="loader-progress-fill" id="loader-progress-fill"></span></div>
+        <span class="loader-progress-value" id="loader-progress-value">1%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- WELCOME POPUP -->
+  <div class="welcome-overlay" id="welcome-overlay">
+    <div class="welcome-popup">
+      <div class="welcome-popup-header">
+        <div class="welcome-popup-title">Welcome to Q4XY</div>
+        <button class="welcome-popup-close" id="welcome-close" aria-label="Close">✕</button>
+      </div>
+      <div class="welcome-body">
+        <div class="welcome-section">
+          <div class="welcome-section-label">CUSTOMIZE</div>
+          <div class="welcome-theme-grid">
+            <button class="welcome-theme-btn active" data-wtheme="red" aria-label="Red Theme">
+              <span class="w-dot" style="background:#ff2d2d;box-shadow:0 0 8px #ff2d2d;"></span>RED
+            </button>
+            <button class="welcome-theme-btn" data-wtheme="cyan" aria-label="Cyan Theme">
+              <span class="w-dot" style="background:#00f0ff;box-shadow:0 0 8px #00f0ff;"></span>CYAN
+            </button>
+            <button class="welcome-theme-btn" data-wtheme="green" aria-label="Green Theme">
+              <span class="w-dot" style="background:#00ff7b;box-shadow:0 0 8px #00ff7b;"></span>GREEN
+            </button>
+            <button class="welcome-theme-btn" data-wtheme="amber" aria-label="Amber Theme">
+              <span class="w-dot" style="background:#ffb300;box-shadow:0 0 8px #ffb300;"></span>AMBER
+            </button>
+          </div>
+        </div>
+        <div class="welcome-section">
+          <div class="welcome-section-label">AUDIO</div>
+          <div class="welcome-sound-row">
+            <span class="welcome-sound-label">System Sounds</span>
+            <div class="welcome-toggle" id="welcome-sound-toggle">
+              <div class="welcome-toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+        <div class="welcome-section">
+          <div class="welcome-section-label">SHORTCUTS</div>
+          <div class="welcome-shortcuts">
+            <div class="welcome-shortcut"><span>Red Theme</span><kbd>R</kbd></div>
+            <div class="welcome-shortcut"><span>Cyan Theme</span><kbd>B</kbd></div>
+            <div class="welcome-shortcut"><span>Green Theme</span><kbd>G</kbd></div>
+            <div class="welcome-shortcut"><span>Amber Theme</span><kbd>Y</kbd></div>
+            <div class="welcome-shortcut"><span>Dev Console</span><kbd>CTRL+SHIFT+D</kbd></div>
+            <div class="welcome-shortcut"><span>Hidden Terminal</span><kbd>Type Q4XY</kbd></div>
+            <div class="welcome-shortcut"><span>Reopen Help</span><kbd>?</kbd></div>
+            <div class="welcome-shortcut"><span>Close Panel</span><kbd>ESC</kbd></div>
+            <div class="welcome-shortcut"><span>Live Terminal</span><kbd>~</kbd></div>
+            <div class="welcome-shortcut"><span>FPS Monitor</span><kbd>F</kbd></div>
+          </div>
+        </div>
+        <div class="welcome-section welcome-features">
+          <div class="welcome-section-label">INTERACTIVE SYSTEMS</div>
+          <div class="welcome-features-grid">
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#9834;</span><span class="wf-name">Sci-Fi Audio FX</span></div>
+              <p>Synthesized Web Audio clicks and hover blips on every interactive element. No files, pure oscillators.</p>
+              <kbd>Speaker icon &middot; bottom right</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&gt;_</span><span class="wf-name">Live Terminal</span></div>
+              <p>Collapsible shell docked bottom-left. Try <b>help</b>, <b>skills</b>, <b>projects</b>, <b>contact</b>, <b>theme</b>, <b>fps</b>, <b>clear</b>. Arrow keys recall history.</p>
+              <kbd>Press ~ to toggle</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#8767;</span><span class="wf-name">Fluid Background</span></div>
+              <p>A live "wallpaper" fluid sim runs behind the whole site. Move your cursor to push swirling smoke trails &mdash; faster strokes = denser, brighter ripples. Click to burst. It re-tints with the active theme and idles with a slow ambient drift.</p>
+              <kbd>Move / click anywhere</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#8226;</span><span class="wf-name">Dot Cursor + Cmd Trail</span></div>
+              <p>Native arrow stays, with a small accent dot on top and a hand pointer over anything clickable. Micro command glyphs (<b>ls</b>, <b>ps</b>, <b>sudo</b>&hellip;) puff off the pointer as you move.</p>
+              <kbd>Just move the mouse</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#9673;</span><span class="wf-name">Spotlight Cursor</span></div>
+              <p>A soft radial spotlight trails your pointer and lights up the darker sections as you explore.</p>
+              <kbd>Just move the mouse</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#9636;</span><span class="wf-name">Project Filters</span></div>
+              <p>Animated pills in PROJECTS shuffle cards with FLIP layout transitions: All / Hardware / Software / Security.</p>
+              <kbd>Tap a pill</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#9636;&#9636;</span><span class="wf-name">FPS Monitor</span></div>
+              <p>Retro perf widget with live FPS, frame time, scroll velocity and a mini history graph.</p>
+              <kbd>Press F</kbd>
+            </div>
+            <div class="wf-card">
+              <div class="wf-card-top"><span class="wf-ico">&#8776;</span><span class="wf-name">Cinematic Depth</span></div>
+              <p>Scroll-linked depth stacking plus a particle grid background that ripples with your scroll velocity.</p>
+              <kbd>Scroll fast to react</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="welcome-footer">Press <span>ESC</span> to close &middot; Press <span>?</span> to reopen</div>
+    </div>
+  </div>
+
+  <!-- CURSOR -->
+  <div class="cursor-trail" id="cursor-trail"></div>
+  <div class="cursor-core" id="cursor-core"></div>
+  <div class="cursor-ring" id="cursor-ring"></div>
+
+  <!-- THEME TOGGLE BUTTON & MENU -->
+  <button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+  <div class="theme-menu" id="theme-menu">
+    <button data-theme="red"><span class="dot" style="background:#ff2d2d;"></span>RED TEAM</button>
+    <button data-theme="green"><span class="dot" style="background:#00ff7b;"></span>HACKER</button>
+    <button data-theme="cyan"><span class="dot" style="background:#00f0ff;"></span>CYBERSECURITY</button>
+    <button data-theme="amber"><span class="dot" style="background:#ffb300;"></span>SYSTEM</button>
+  </div>
+
+  <!-- SOUND TOGGLE -->
+  <button class="sound-toggle-btn" id="sound-toggle-btn" aria-label="Toggle Sound">
+    <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+      <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"/><path d="M16.5 8.5a5 5 0 010 7"/><path d="M19 6a9 9 0 010 12"/>
+    </svg>
+    <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"/><line x1="16" y1="9" x2="21" y2="14"/><line x1="21" y1="9" x2="16" y2="14"/>
+    </svg>
+  </button>
+
+  <!-- ACHIEVEMENT TOASTS -->
+  <div class="achievement-stack" id="achievement-stack"></div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <!-- PROGRESS HUD -->
+  <div class="progress-hud" id="progress-hud">
+    <div class="progress-hud-row"><span class="dot"></span><span>ARSENAL <span id="hud-arsenal-pct">0%</span></span></div>
+    <div class="progress-hud-row"><span class="dot"></span><span>ACHIEVEMENTS <span id="hud-ach-count">0</span>/6</span></div>
+  </div>
+
+  <!-- SYSTEM TELEMETRY HUD (decorative) -->
+  <div class="sys-telemetry" id="sys-telemetry" aria-hidden="true">
+    <div class="sys-telemetry-title"><span class="dot"></span>SYS.TELEMETRY</div>
+    <div class="sys-telemetry-row"><span>CPU</span><b id="tm-cpu">—</b></div>
+    <div class="sys-telemetry-bar"><i id="tm-cpu-bar" style="width:0%"></i></div>
+    <div class="sys-telemetry-row"><span>NET</span><b id="tm-net">—</b></div>
+    <div class="sys-telemetry-bar"><i id="tm-net-bar" style="width:0%"></i></div>
+    <div class="sys-telemetry-row"><span>PING</span><b id="tm-ping">—</b></div>
+  </div>
+
+  <!-- CURSOR-REACTIVE AMBIENT LIGHT -->
+  <div class="cursor-ambient-glow" id="cursor-ambient-glow"></div>
+
+  <!-- NAV SCAN-LINE TRANSITION FLASH -->
+  <div class="nav-scan-flash" id="nav-scan-flash"></div>
+
+  <!-- FLUID NAME -->
+  <div class="fluid-name" id="fluid-name" aria-hidden="true">
+    <span>S</span><span>A</span><span>R</span><span>A</span><span>V</span><span>A</span><span>N</span><span>A</span><span>N</span>
+  </div>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <!-- VELOCITY BAR -->
+  <div class="velocity-bar" id="velocity-bar"><div class="velocity-fill" id="velocity-fill"></div></div>
+
+  <!-- EXPLORE POPUP -->
+  <div class="explore-popup" id="explore-popup">SCROLL TO SEE MORE ↓</div>
+
+  <!-- TEXTURES, MATRIX, & CYBER BACKGROUND -->
+  <div id="bg-gradient-base" aria-hidden="true"></div>
+  <div class="bg-grid" id="bg-grid"></div>
+  <div class="bg-scan-sweep"></div>
+  <div class="bg-scanlines" id="bg-scanlines"></div>
+  <div class="bg-noise"></div>
+  <canvas id="matrix-canvas"></canvas>
+  <canvas id="gta-sunset-layer"></canvas>
+  <canvas id="gta-city-canvas"></canvas>
+  <canvas id="gta-tunnel-canvas"></canvas>
+  <canvas id="gta-bedrock-canvas"></canvas>
+  <div class="depth-vignette" id="depth-vignette"></div>
+  <div class="depth-scanlines" id="depth-scanlines"></div>
+  <div class="cyber-ambient-layer" id="cyber-ambient-layer"></div>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-atmosphere"></div>
+    <div class="hero-pulse" id="hero-pulse"></div>
+    <div class="hero-shapes" id="hero-shapes">
+      <div class="hero-shape hero-shape-1"></div>
+      <div class="hero-shape hero-shape-2"></div>
+      <div class="hero-shape hero-shape-3"></div>
+      <div class="hero-shape hero-shape-4"></div>
+      <div class="hero-shape hero-shape-5"></div>
+    </div>
+    <div class="hero-data-streams" id="hero-data-streams">
+      <div class="data-stream" style="left:8%;--duration:7s;--delay:0s;"></div>
+      <div class="data-stream" style="left:18%;--duration:9s;--delay:2s;"></div>
+      <div class="data-stream" style="left:35%;--duration:6s;--delay:1s;"></div>
+      <div class="data-stream" style="left:55%;--duration:10s;--delay:3s;"></div>
+      <div class="data-stream" style="left:72%;--duration:8s;--delay:0.5s;"></div>
+      <div class="data-stream" style="left:88%;--duration:7.5s;--delay:4s;"></div>
+      <div class="data-stream" style="left:45%;--duration:11s;--delay:2.5s;"></div>
+      <div class="data-stream" style="left:95%;--duration:6.5s;--delay:1.5s;"></div>
+    </div>
+    <canvas id="particle-canvas"></canvas>
+    <div class="hero-hud-corner hero-hud-tl" id="hud-tl"><span>Q4XY</span> // PORTFOLIO v2.0</div>
+    <div class="hero-hud-corner hero-hud-tr" id="hud-tr">
+      <span id="hud-time">00:00:00</span>
+      <span id="hud-fps">60 FPS</span>
+    </div>
+    <div class="hero-hud-corner hero-hud-br" id="hud-br">
+      <span class="hero-hud-br-dot"></span>
+      SECURE CONNECTION
+    </div>
+    <div class="container hero-content">
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot"></span>
+        ONLINE / BUILDING
+      </div>
+      <div class="hero-name-wrap" id="hero-name-wrap">
+        <h1 class="hero-name" id="hero-name" aria-label="Q4XY"></h1>
+        <div class="hero-name-glitch" id="hero-name-glitch">
+          <div class="glitch-layer glitch-r" aria-hidden="true"></div>
+          <div class="glitch-layer glitch-cyan" aria-hidden="true"></div>
+        </div>
+        <div class="hero-scan-line" id="hero-scan-line"></div>
+        <div class="hero-name-reflection" id="hero-name-reflection" aria-hidden="true">Q4XY</div>
+      </div>
+      <p class="hero-tagline" id="hero-tagline"><span>15</span> • GRADE 11 • DEVELOPER</p>
+      <p class="hero-statement" id="hero-statement">I build software, experiment with different systems, and explore what I can create on the web — one project at a time.</p>
+      <div class="hero-bg-select" id="hero-bg-select">
+        <button class="bg-terminal-trigger" id="bg-terminal-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="bg-terminal-prompt">&gt;</span> background<span class="bg-terminal-cursor"></span>
+        </button>
+        <div class="bg-terminal-menu" id="bg-terminal-menu" role="menu">
+          <button class="bg-terminal-item active" data-bg="matrix" type="button" aria-pressed="true" role="menuitem"><span class="dot"></span>matrix</button>
+          <button class="bg-terminal-item" data-bg="kinetic" type="button" aria-pressed="false" role="menuitem"><span class="dot"></span>kinetic</button>
+          <button class="bg-terminal-item" data-bg="dots" type="button" aria-pressed="false" role="menuitem"><span class="dot"></span>dotform</button>
+        </div>
+      </div>
+    </div>
+    <div class="hero-terminal" id="hero-terminal">
+      <div class="terminal-dots"><span></span><span></span><span></span></div>
+      <div class="terminal-line"><span id="terminal-text">SYSTEM ONLINE</span></div>
+    </div>
+    <div class="scroll-indicator" id="scroll-indicator">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- GLITCH FLASH -->
+  <div class="glitch-flash-overlay" id="glitch-flash"></div>
+
+  <!-- ===== ABOUT + TIMELINE ===== -->
+  <section class="section-wrap" id="about" data-parallax-section>
+    <div class="depth-glow" data-parallax-layer data-speed="0.15"></div>
+    <div class="depth-glow-left" data-parallax-layer data-speed="0.08"></div>
+    <div class="container">
+      <div class="section-header" data-scroll="clip">
+        <span class="section-label">01 / IDENTITY</span>
+        <h2 class="section-title" data-scramble>ABOUT</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-left">
+          <p class="about-bio" data-scroll="blur-up" data-scroll-delay="160">
+            I'm Saravanan — alias <strong style="color:var(--accent-red);">Q4XY</strong> — a Grade 11 student who started with robotics, competed on stages, built real hardware projects with microcontrollers, and is now diving deep into web development and cybersecurity. Every year added a new layer.
+          </p>
+          <div class="about-terminal" data-scroll="slide-right" data-scroll-delay="300" data-cursor-light>
+            <div class="about-terminal-header">
+              <div class="about-terminal-dots"><span></span><span></span><span></span></div>
+              <div class="about-terminal-title">USER_PROFILE.SH</div>
+            </div>
+            <div class="about-terminal-line"><span class="prompt">$</span><span>cat identity.json</span></div>
+            <div class="about-terminal-line"><span class="prompt">&gt;</span><span>{"name": "Saravanan",</span></div>
+            <div class="about-terminal-line"><span class="prompt">&gt;</span><span> "alias": "Q4XY",</span></div>
+            <div class="about-terminal-line"><span class="prompt">&gt;</span><span> "grade": 11,</span></div>
+            <div class="about-terminal-line"><span class="prompt">&gt;</span><span> "focus": ["web", "security"],</span></div>
+            <div class="about-terminal-line"><span class="prompt">&gt;</span><span> "status": "building"}</span></div>
+          </div>
+        </div>
+        <div class="timeline" id="timeline-container" data-scroll-children>
+          <div class="timeline-progress-line" id="timeline-progress"></div>
+          <div class="timeline-item">
+            <div class="timeline-year">2020</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-subtitle">Started with Basic STEM Robotics</div>
+              <div class="timeline-desc">My first hands-on experience with circuits and motors. Built simple bots and got hooked on how hardware responds to code.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2022</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-subtitle">Built Small Projects</div>
+              <div class="timeline-desc">Things like an obstacle-avoiding car, a light-following car, a line-following car, and other projects using servos.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2023</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-subtitle">The Moment I Learned Block Coding</div>
+              <div class="timeline-desc">Used block coding to program a robot car and a few small projects.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2024</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-subtitle">Microcontroller Projects</div>
+              <div class="timeline-desc">Shifted from kits to custom projects using Arduino Nano, Uno, and other microcontrollers. Built real-world devices — IoT sensors, automation rigs, and custom tools.</div>
+              <div class="timeline-desc">Also built an Otto DIY robot with features like emotions and a matrix face — pick it up and it reacts.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2025</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-subtitle">Learned the Tech Stack [Still Learning]</div>
+              <div class="timeline-desc">Pivoted into software — HTML, CSS, JavaScript, Python, Kali Linux. Started building websites and exploring ethical hacking on Kali.</div>
+              <div class="timeline-desc">Explored AI tools in Kali [pac], then tried a camjacking tool, a BLE device scanner, a Wi-Fi SSID duplicator, and a USB security / device monitor.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year now-year">2026</div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-dot now-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-now-badge">NOW</div>
+              <div class="timeline-subtitle">Still Building</div>
+               <div class="timeline-desc">I'm 15 and still just getting started, but every project, mistake, and experiment is part of the process.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CINEMATIC CYBERPUNK TECH STACK BRIDGE ===== -->
+  <section id="cyber-tech-bridge" aria-label="Transition into the technology stack">
+    <div class="ct-sticky">
+      <div class="ct-aurora" aria-hidden="true"></div>
+      <div class="ct-stars" aria-hidden="true"></div>
+      <div class="ct-grid" aria-hidden="true"></div>
+      <div class="ct-horizon" aria-hidden="true"></div>
+      <div class="ct-rings" aria-hidden="true"></div>
+
+      <div class="ct-intro">
+        <div class="ct-eyebrow">02 / TOOLS & TECHNOLOGIES</div>
+        <h2 class="ct-title">WHAT I <span>WORK WITH</span></h2>
+        <p class="ct-copy">The tools, languages, and hardware I've been learning and using across my projects. Still growing, still experimenting, and always adding something new.</p>
+      </div>
+      <div class="ct-status" aria-live="polite">
+        <span class="ct-status-dot" aria-hidden="true"></span>
+        <span data-ct-status>approaching core</span>
+      </div>
+
+      <div class="ct-scene" aria-hidden="true">
+        <div class="ct-vehicle">
+          <div class="ct-beam ct-beam-left"></div>
+          <div class="ct-beam ct-beam-right"></div>
+          <svg class="ct-car-svg" viewBox="0 0 1000 540" role="presentation">
+            <defs>
+              <linearGradient id="ct-car-shell" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f7ecff"/>
+                <stop offset=".14" stop-color="#9f6aff"/>
+                <stop offset=".38" stop-color="#21103c"/>
+                <stop offset=".72" stop-color="#090510"/>
+                <stop offset="1" stop-color="#ec4899"/>
+              </linearGradient>
+              <linearGradient id="ct-car-lower" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#190b2f"/>
+                <stop offset=".5" stop-color="#05030a"/>
+                <stop offset="1" stop-color="#3d0b43"/>
+              </linearGradient>
+              <linearGradient id="ct-glass" x1="0" y1="0" x2=".9" y2="1">
+                <stop stop-color="#f6dcff" stop-opacity=".82"/>
+                <stop offset=".22" stop-color="#6f41aa" stop-opacity=".74"/>
+                <stop offset="1" stop-color="#08040f" stop-opacity=".96"/>
+              </linearGradient>
+              <linearGradient id="ct-light" x1="0" y1="0" x2="1" y2="0">
+                <stop stop-color="#fff"/>
+                <stop offset=".33" stop-color="#ecb8ff"/>
+                <stop offset="1" stop-color="#ec4899" stop-opacity=".1"/>
+              </linearGradient>
+              <filter id="ct-svg-glow">
+                <feGaussianBlur stdDeviation="5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <path d="M132 375 Q285 460 500 466 Q726 459 878 364 Q832 434 675 476 Q443 527 237 461 Q158 433 132 375Z" fill="#ec4899" opacity=".24" filter="url(#ct-svg-glow)"/>
+            <path d="M86 346 Q107 307 166 293 L278 264 Q325 185 424 154 Q503 128 615 159 L706 193 Q768 212 855 291 L924 328 Q949 343 927 367 L856 389 Q811 439 710 439 L275 438 Q169 434 112 389 L72 373 Q57 361 86 346Z" fill="url(#ct-car-shell)" stroke="#f2c7ff" stroke-opacity=".72" stroke-width="3"/>
+            <path d="M79 355 Q244 382 421 376 Q661 368 925 338 L935 368 L857 395 Q815 442 711 440 L267 440 Q166 434 110 390 L72 373Z" fill="url(#ct-car-lower)" stroke="#a855f7" stroke-opacity=".62" stroke-width="3"/>
+            <path d="M283 264 Q341 183 425 155 Q500 135 606 163 L694 198 L728 237 L663 274 L335 294Z" fill="url(#ct-glass)" stroke="#d8a4ff" stroke-opacity=".9" stroke-width="3"/>
+            <path d="M422 157 L441 282 M605 164 L648 272" fill="none" stroke="#e9c7ff" stroke-opacity=".45" stroke-width="3"/>
+            <path d="M295 268 Q451 249 715 231" fill="none" stroke="#fff" stroke-opacity=".33" stroke-width="3"/>
+            <path d="M700 238 Q807 252 857 292 L923 329 L731 326Z" fill="#24103c" opacity=".88"/>
+            <path d="M86 346 L276 321 L310 369 L109 389Z" fill="#08040e" opacity=".76"/>
+            <path d="M332 298 Q521 315 724 290 L780 321 Q602 359 303 345Z" fill="#0b0615" opacity=".88"/>
+            <path d="M111 345 Q285 317 435 327 Q647 341 862 299" fill="none" stroke="#f4ddff" stroke-opacity=".56" stroke-width="3"/>
+            <path d="M193 407 Q473 431 818 384" fill="none" stroke="#ec4899" stroke-opacity=".82" stroke-width="4" filter="url(#ct-svg-glow)"/>
+            <path d="M246 314 Q465 289 746 282" fill="none" stroke="#a855f7" stroke-opacity=".82" stroke-width="3"/>
+            <path d="M752 302 L873 319 L823 343 L745 328Z" fill="url(#ct-light)" filter="url(#ct-svg-glow)"/>
+            <path d="M775 306 L860 321" stroke="#fff" stroke-width="5" stroke-linecap="round" filter="url(#ct-svg-glow)"/>
+            <path d="M157 329 L239 316 L250 339 L164 349Z" fill="#ec4899" opacity=".8"/>
+            <g fill="#030008" stroke="#a855f7" stroke-width="5">
+              <ellipse cx="245" cy="405" rx="58" ry="72"/>
+              <ellipse cx="766" cy="386" rx="58" ry="72"/>
+            </g>
+            <g fill="none" stroke="#ec4899" stroke-opacity=".88" stroke-width="6">
+              <ellipse cx="245" cy="405" rx="29" ry="43"/>
+              <ellipse cx="766" cy="386" rx="29" ry="43"/>
+            </g>
+            <g fill="#f1c4ff">
+              <circle cx="245" cy="405" r="7"/>
+              <circle cx="766" cy="386" r="7"/>
+            </g>
+            <path d="M174 457 Q465 506 830 427" fill="none" stroke="#ec4899" stroke-width="7" opacity=".86" filter="url(#ct-svg-glow)"/>
+            <path d="M239 458 Q491 486 768 430" fill="none" stroke="#a855f7" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ct-vignette" aria-hidden="true"></div>
+      <div class="ct-scanlines" aria-hidden="true"></div>
+      <div class="ct-noise" aria-hidden="true"></div>
+      <div class="ct-corner ct-corner-left" aria-hidden="true">
+        <span>LAPTOP // Q4XY NODE 07</span><br>
+        <span>SCREEN SIGNAL: <b data-ct-energy>00%</b></span>
+      </div>
+      <div class="ct-corner ct-corner-right" aria-hidden="true">
+        <span>SCROLL TO DEPLOY</span><br>
+        <span>DEPTH <b data-ct-depth>-1050</b></span>
+      </div>
+      <div class="ct-progress" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ===== TECH STACK — Interactive Arsenal ===== -->
+  <!-- PHASE 2: TRUE 3D TECH STACK — physics-driven WebGL sphere -->
+  <section class="tech-section" id="tech" data-parallax-section>
+    <div class="tech-bg">
+      <div class="tech-bg-fog"></div>
+      <div class="tech-bg-fog2"></div>
+      <div class="tech-grid-lines"></div>
+      <div class="tech-scan"></div>
+    </div>
+    <div class="tech-header-wrap">
+      <div class="ct-intro">
+        <div class="ct-eyebrow">02 / TOOLS & TECHNOLOGIES</div>
+        <h2 class="ct-title">WHAT I <span>WORK WITH</span></h2>
+        <p class="ct-copy">The tools, languages, and hardware I've been learning and using across my projects. Still growing, still experimenting, and always adding something new.</p>
+      </div>
+
+      <div id="tech-canvas-container" data-scroll="scale-in">
+        <div class="tech-canvas-label">
+          <span class="tech-canvas-label-title">Q4XY IDENTITY</span>
+          <span class="tech-canvas-label-hint">Drag to rotate · Hover a module to view it</span>
+        </div>
+        <button class="tech-magnet-btn" id="tech-magnet-btn" type="button" aria-pressed="false">
+          <span class="tmb-icon">⌬</span>
+          <span class="tmb-label">Magnetize</span>
+        </button>
+        <div class="tech-fallback">WebGL required for the interactive experience.<br>Stack: HTML, CSS, JavaScript, Python, C, C++, Arduino, Arduino Nano, Arduino Uno, ESP32, Git, GitHub, VS Code, Figma, Linux, Kali Linux, Nmap.</div>
+        <div class="tech-node-tooltip" id="tech-tooltip"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROJECTS (PREMIUM ZIGZAG) [EDITED] ===== -->
+  <section class="section-wrap" id="projects" data-parallax-section>
+    <div class="container">
+      <div class="section-header" data-scroll="clip">
+        <span class="section-label">03 / CREATIONS</span>
+        <h2 class="section-title" data-scramble>PROJECTS</h2>
+      </div>
+      
+      <div class="projects-list">
+        <div class="project-zigzag" data-scroll="slide-left" data-tilt data-mission
+          data-tag="OP // HARDWARE-01" data-title="Hardware Automation"
+          data-stack="Arduino,ESP32,C++,Sensor Fusion,Kinematics,IoT"
+          data-desc="Built and programmed robots using Arduino, sensors, and motors — learning how to make hardware respond the way I want it to.|Moved from basic robotics kits to custom microcontroller projects, building small IoT devices and automation tools and learning how to wire and code everything myself."
+          data-status="OPERATIONAL" data-role="Builder / Firmware">
+          <div class="project-img" data-cursor-light><span data-scramble>Robotics & IoT</span><span class="briefing-hint">CLICK FOR MISSION BRIEFING →</span></div>
+          <div class="project-text">
+            <h3 data-scramble>Robotics & Automation</h3>
+            <p>Built and programmed custom robotic systems using Arduino and microcontrollers, working with sensors, motors, and control logic — learning a lot through testing, debugging, and hands-on trial and error.</p>
+          </div>
+        </div>
+        <div class="project-zigzag reverse" data-scroll="slide-right" data-tilt data-mission
+          data-tag="OP // MC-SERVERS" data-title="Minecraft Server Developer"
+          data-stack="Java,JavaScript,Plugin Dev,Server Ops,Frontend"
+          data-desc="Frontend developer who ran a bunch of servers and built for them — some usernames fade with time, but what I built with [Bitdinosaur1091], [Macezz], and [Catman7988] hasn't.|Built a lot, learned a lot, and left my mark across the Tamil Minecraft server scene — that part's still true."
+          data-status="ARCHIVED — LEGACY" data-role="Frontend Dev / Server Ops">
+          <div class="project-img" data-cursor-light><span data-scramble>Minecraft Server Developer</span><span class="briefing-hint">CLICK FOR MISSION BRIEFING →</span></div>
+          <div class="project-text">
+            <h3 data-scramble>Minecraft Server Development</h3>
+            <p>Before robotics and embedded systems, I built my name through Minecraft server development. Bitdinosaur1091, Macezz, and Catman7988 were the names I went by across the servers and projects I built in the Tamil Minecraft community.</p>
+            <p>It started with running servers and turned into years of building, customizing, breaking, rebuilding, and learning how to create systems that other people actually used.</p>
+            </div>
+        </div>
+        <div class="project-zigzag" data-scroll="glitch-rise" data-tilt data-mission
+          data-tag="OP // REDTEAM-101" data-title="Cybersecurity — Learning & Experimenting"
+          data-stack="ESP32,Wireshark,Aircrack-ng,Deauth/DoS,Wi-Fi Pentest"
+          data-desc="Started as a beginner who knew the basics and a few simple attacks, then tried a camjacking tool and some Wi-Fi pentesting using an ESP32 dev module.|Practiced deauth and DoS attacks using an ESP32 in a controlled, educational setup."
+          data-status="IN PROGRESS" data-role="Learner / Researcher">
+          <div class="project-img" data-cursor-light><span data-scramble>Cybersecurity</span><span class="briefing-hint">CLICK FOR MISSION BRIEFING →</span></div>
+          <div class="project-text">
+            <h3 data-scramble>Cybersecurity Learning</h3>
+            <p>Started with the basics of cybersecurity and gradually explored areas like network security, camera security, and Wi-Fi testing through hands-on experiments and lab setups.</p>
+            <p>Explored ESP32-based security projects and learned about wireless attacks such as deauthentication and denial-of-service in controlled environments.</p>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="contact-console" id="contact-console" data-scroll="fade" style="--scroll-delay:220ms;">
+  <div class="contact-console-bar">
+    <span>CONTACT</span>
+    <span class="cc-secure">Analyze the error, learn from the mistake, then solve it.</span>
+  </div>
+
+  <div class="contact-console-body">
+
+    <div class="contact-status">
+      <span class="cc-chip">
+        <span class="cc-live"></span>
+        AVAILABLE :
+      </span>
+      <span class="cc-chip">IST · UTC+5:30</span>
+      <span class="cc-chip">ROBOTICS · SOFTWARE · SECURITY</span>
+    </div>
+
+    <div class="links-grid" data-scroll-stagger data-stagger-base="420" data-stagger-step="110">
+
+      <a href="mailto:saravanan1980robot@gmail.com"
+         class="link-card"
+         data-magnetic
+         data-cursor-light
+         data-ripple>
+
+        <div class="link-card-text">
+          <div class="link-title" data-scramble>EMAIL</div>
+          <div class="link-url">saravanan.dev77@gmail.com</div>
+        </div>
+
+        <svg class="link-arrow" viewBox="0 0 24 24" fill="none"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17L17 7"/>
+          <path d="M7 7h10v10"/>
+        </svg>
+      </a>
+
+      <a href="https://github.com/q4xy"
+         target="_blank"
+         rel="noopener"
+         class="link-card"
+         data-magnetic
+         data-cursor-light
+         data-ripple>
+
+        <div class="link-card-text">
+          <div class="link-title" data-scramble>GITHUB</div>
+          <div class="link-url">github.com/q4xy</div>
+        </div>
+
+        <svg class="link-arrow" viewBox="0 0 24 24" fill="none"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17L17 7"/>
+          <path d="M7 7h10v10"/>
+        </svg>
+      </a>
+
+      <a href="https://guns.lol/q4xy"
+         target="_blank"
+         rel="noopener"
+         class="link-card"
+         data-magnetic
+         data-cursor-light
+         data-ripple>
+
+        <div class="link-card-text">
+          <div class="link-title" data-scramble>PROFILE</div>
+          <div class="link-url">guns.lol/q4xy</div>
+        </div>
+
+        <svg class="link-arrow" viewBox="0 0 24 24" fill="none"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17L17 7"/>
+          <path d="M7 7h10v10"/>
+        </svg>
+      </a>
+
+    </div>
+
+    <div class="contact-copy">
+      <button class="cc-copy-btn" id="cc-copy-btn" type="button" data-ripple>
+        COPY EMAIL
+      </button>
+
+      <span class="cc-hint">
+        Prefer email for project inquiries and opportunities.
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<div class="contact-sign" data-scroll="fade" style="--scroll-delay:560ms;">
+  Thank you.
+</div>
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+
+      <div class="footer-text">
+        © 2026 Q4XY — SARAVANAN
+      </div>
+
+      <div class="footer-status">
+        <span class="footer-status-dot"></span>
+        <span id="footer-clock">Thank you for taking the time to explore my work</span>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+  <!-- Q4XY CMD (CTRL+SHIFT+D) -->
+  <div class="q4xy-cmd-overlay" id="q4xy-cmd-overlay">
+    <div class="q4xy-cmd-box">
+      <div class="cmd-header">
+        <span>Q4XY TERMINAL // ROOT ACCESS</span>
+        <span class="cmd-close" id="cmd-close">[X] CLOSE</span>
+      </div>
+      <div class="cmd-boot" id="cmd-boot">
+        <div class="cmd-boot-line" id="cmd-boot-line-0">&gt; Accessing Q4XY OS...</div>
+        <div class="cmd-boot-line" id="cmd-boot-line-1">&gt; Loading modules...</div>
+        <div class="cmd-boot-line" id="cmd-boot-line-2">&gt; Authenticating...</div>
+        <div class="cmd-boot-line ok" id="cmd-boot-line-3">&gt; Access Granted.</div>
+        <div class="cmd-boot-bar"><div class="cmd-boot-bar-fill" id="cmd-boot-bar-fill"></div></div>
+      </div>
+      <div class="cmd-body" id="cmd-body">
+        <div class="cmd-output-wrapper" id="cmd-output-wrapper">
+          <div class="output sys show">_ SECURE TUNNEL ESTABLISHED</div>
+          <div class="output success show">WELCOME. ALL SYSTEMS NOMINAL.</div>
+          <div class="output show">Type 'help' to see available commands.</div>
+        </div>
+        <div class="cmd-input-line">
+          <span class="prompt-prefix">q4xy@sys:~$</span>
+          <input type="text" class="cmd-input" id="cmd-input" autocomplete="off" spellcheck="false" autofocus>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4XY HIDDEN CINEMATIC EASTER EGG (type q4xy anywhere) -->
+  <div class="q4xy-egg" id="q4xy-egg" aria-hidden="true">
+    <canvas id="q4xy-egg-canvas"></canvas>
+    <div class="q4xy-egg-vignette"></div>
+    <div class="q4xy-egg-scanlines"></div>
+    <div class="q4xy-egg-flicker"></div>
+    <div class="q4xy-egg-console" id="q4xy-egg-console">
+      <div class="q4xy-egg-line" id="q4xy-line-0">&gt; Initializing Kali Linux environment...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-1">&gt; Loading security modules...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-2">&gt; Establishing encrypted connection...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-3">&gt; Scanning network interface...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-4">&gt; Running simulated Nmap scan...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-5">&gt; Port 22 ... OPEN &nbsp; Port 80 ... OPEN &nbsp; Port 443 ... OPEN</div>
+      <div class="q4xy-egg-line" id="q4xy-line-6">&gt; Analyzing system...</div>
+      <div class="q4xy-egg-line" id="q4xy-line-7">&gt; Security protocol bypass simulation...<span class="q4xy-egg-cursor"></span></div>
+      <div class="q4xy-egg-bar"><div class="q4xy-egg-bar-fill" id="q4xy-egg-bar-fill"></div></div>
+    </div>
+    <div class="q4xy-egg-granted" id="q4xy-egg-granted">ACCESS GRANTED</div>
+    <div class="q4xy-egg-final" id="q4xy-egg-final">
+      <div class="big">Q4XY</div>
+      <div class="sub">SYSTEM ONLINE</div>
+    </div>
+  </div>
+
+  <!-- KONAMI CODE SECRET (↑ ↑ ↓ ↓ ← → ← → B A) -->
+  <div class="konami-egg" id="konami-egg" aria-hidden="true">
+    <div class="konami-egg-inner">
+      <div class="konami-keys">&uarr; &uarr; &darr; &darr; &larr; &rarr; &larr; &rarr; B A</div>
+      <div class="konami-title">CHEAT CODE ACTIVATED</div>
+      <div class="konami-stats">
+        <div>+100 CURIOSITY</div>
+        <div>+50&nbsp;&nbsp;&nbsp;XP</div>
+        <div>+1&nbsp;&nbsp;&nbsp;&nbsp;SECRET FOUND</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION BRIEFING MODAL (project cards) -->
+  <div class="mission-modal-overlay" id="mission-modal-overlay">
+    <div class="mission-modal">
+      <div class="mission-modal-head">
+        <span class="mission-modal-tag" id="mission-tag">OP // 000</span>
+        <span class="mission-modal-close" id="mission-close">[X] CLOSE</span>
+      </div>
+      <div class="mission-modal-body">
+        <h3 class="mission-modal-title" id="mission-title">Mission Title</h3>
+        <div class="mission-modal-shot" id="mission-shot"><span data-scramble id="mission-shot-label">SCREENSHOT UNAVAILABLE</span></div>
+        <div class="mission-modal-desc" id="mission-desc"></div>
+        <div class="mission-modal-stack" id="mission-stack"></div>
+        <div class="mission-modal-meta">
+          <div><b>STATUS</b><span id="mission-status">—</span></div>
+          <div><b>ROLE</b><span id="mission-role">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== [NEW] ADVANCED FX MODULE MARKUP ===== -->
+  <canvas id="fx-kinetic-canvas" aria-hidden="true"></canvas>
+  <canvas id="fx-dots-canvas" aria-hidden="true"></canvas>
+  <canvas id="fx-grid-canvas" aria-hidden="true"></canvas>
+
+  <div class="fx-fps" id="fx-fps" aria-hidden="true">
+    <div class="fx-fps-title">PERF.MONITOR</div>
+    <div class="fx-fps-row"><span>FPS</span><b id="fx-fps-val">--</b></div>
+    <div class="fx-fps-row"><span>MS</span><b id="fx-fps-ms">--</b></div>
+    <div class="fx-fps-row"><span>SCROLL</span><b id="fx-fps-vel">0</b></div>
+    <div class="fx-fps-graph" id="fx-fps-graph"></div>
+  </div>
+
+  <div class="fx-cli" id="fx-cli">
+    <div class="fx-cli-panel">
+      <div class="fx-cli-inner">
+        <div class="fx-cli-head"><span class="d"></span><span class="d"></span><span class="d"></span>q4xy@visitor — live shell</div>
+        <div class="fx-cli-out" id="fx-cli-out"></div>
+        <form class="fx-cli-form" id="fx-cli-form" autocomplete="off">
+          <span class="p">&gt;</span>
+          <input id="fx-cli-input" type="text" placeholder="type 'help' and hit enter" aria-label="Terminal input">
+        </form>
+      </div>
+    </div>
+    <button class="fx-cli-toggle" id="fx-cli-toggle" aria-expanded="false">
+      <span class="fx-cli-dot"></span>LIVE TERMINAL<span class="fx-cli-key">~</span>
+    </button>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Optional post-processing (bloom) chain — game degrades gracefully if any of these fail to load -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
